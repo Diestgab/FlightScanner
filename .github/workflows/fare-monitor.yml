@@ -2,12 +2,22 @@ name: Monitor de Passagens LATAM
 
 on:
   schedule:
-    # Executa a cada 5 minutos, evitando o pico do minuto zero
     - cron: '2-59/5 * * * *'
-  workflow_dispatch: # Permite que você clique em um botão para rodar manualmente se quiser
+    - cron: '4-59/10 * * * *'
+    - cron: '1-59/15 * * * *'
+    - cron: '3,33 * * * *'
+    - cron: '6 * * * *'
+  workflow_dispatch:
 
 jobs:
   check-price:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (vars.MONITOR_INTERVAL_MINUTES == '5' && github.event.schedule == '2-59/5 * * * *') ||
+      (vars.MONITOR_INTERVAL_MINUTES == '10' && github.event.schedule == '4-59/10 * * * *') ||
+      (vars.MONITOR_INTERVAL_MINUTES == '15' && github.event.schedule == '1-59/15 * * * *') ||
+      (vars.MONITOR_INTERVAL_MINUTES == '30' && github.event.schedule == '3,33 * * * *') ||
+      (vars.MONITOR_INTERVAL_MINUTES == '60' && github.event.schedule == '6 * * * *')
     runs-on: ubuntu-22.04
 
     steps:
@@ -31,7 +41,6 @@ jobs:
 
     - name: Executar o monitoramento de preço
       env:
-        # Mapeia os Secrets que você vai cadastrar no GitHub
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         PRECO_MAXIMO: ${{ vars.PRECO_MAXIMO }}
