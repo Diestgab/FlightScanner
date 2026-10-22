@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-PRECO_MAXIMO = 1000.00
+PRECO_MAXIMO = 2000.00
 
 URL_FLIGHTS = (
     "https://www.google.com/travel/flights/search?tfs=CBwQAhoyEgoyMDI2LTEyLTI2OgJBRD"
