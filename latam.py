@@ -8,8 +8,6 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-PRECO_MAXIMO = 2000.00
-
 URL_FLIGHTS = (
     "https://www.google.com/travel/flights/search?tfs=CBwQAhoyEgoyMDI2LTEyLTI2OgJBRD"
     "oCQVY6AkczQA5IF1AAWBdqBwgBEgNHUlVyBwgBEgNNQ1BAAUgBcAGCAQsI____________AZgBAg&tfu"
@@ -45,7 +43,20 @@ def extrair_valor_float(texto_preco: str) -> float:
         return float(match.group(1))
     return 0.0
 
+def obter_preco_maximo() -> float:
+    valor = os.getenv("PRECO_MAXIMO")
+    if not valor:
+        raise RuntimeError("A variável PRECO_MAXIMO não foi configurada.")
+    try:
+        preco_maximo = float(valor)
+    except ValueError as e:
+        raise RuntimeError("PRECO_MAXIMO precisa ser um número válido.") from e
+    if preco_maximo <= 0:
+        raise RuntimeError("PRECO_MAXIMO precisa ser maior que zero.")
+    return preco_maximo
+
 def verificar_preco_flights():
+    preco_maximo = obter_preco_maximo()
     print(f"\n🔍 Consultando preço do voo das 17:55 via Google Flights (Modo GitHub Actions)...")
     
     with sync_playwright() as p:
@@ -99,18 +110,18 @@ def verificar_preco_flights():
                 print(f"✈️ Voo LATAM encontrado!")
                 print(f"💰 Preço atual: R$ {preco_encontrado:.2f}")
                 
-                if preco_encontrado < PRECO_MAXIMO:
+                if preco_encontrado < preco_maximo:
                     mensagem = (
                         f"🎉 *ALERTA DE PASSAGEM BARATA!* 🎉\n\n"
                         f"✈️ *Voo:* GRU ➔ MCP (LATAM)\n"
                         f"📅 *Data:* 26/12/2026 às *17:55*\n"
                         f"💵 *Preço:* R$ {preco_encontrado:.2f}\n"
-                        f"🚨 *Sua Meta:* Abaixo de R$ {PRECO_MAXIMO:.2f}\n\n"
+                        f"🚨 *Sua Meta:* Abaixo de R$ {preco_maximo:.2f}\n\n"
                         f"🔗 [Clique aqui para comprar no Google Flights]({URL_FLIGHTS})"
                     )
                     enviar_mensagem_telegram(mensagem)
                 else:
-                    diferenca = preco_encontrado - PRECO_MAXIMO
+                    diferenca = preco_encontrado - preco_maximo
                     print(f"📉 Ainda acima do planejado. Faltam R$ {diferenca:.2f} para atingir a meta.")
             else:
                 print("⚠️ Voo localizado na tela, mas não conseguimos extrair o preço.")
